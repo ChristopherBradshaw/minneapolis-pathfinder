@@ -32,12 +32,9 @@ public class Road {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((endPoint == null) ? 0 : endPoint.hashCode());
-		result = prime * result
-				+ ((roadType == null) ? 0 : roadType.hashCode());
-		result = prime * result
-				+ ((startPoint == null) ? 0 : startPoint.hashCode());
+		result = prime * result + ((endPoint == null) ? 0 : endPoint.hashCode());
+		result = prime * result + ((roadType == null) ? 0 : roadType.hashCode());
+		result = prime * result + ((startPoint == null) ? 0 : startPoint.hashCode());
 		return result;
 	}
 
@@ -65,8 +62,7 @@ public class Road {
 	}
 
 	public String toString() {
-		return "Road [roadType=" + roadType + ", startPoint=" + startPoint
-				+ ", endPoint=" + endPoint + "]";
+		return "Road [roadType=" + roadType + ", startPoint=" + startPoint + ", endPoint=" + endPoint + "]";
 	}
 
 }
