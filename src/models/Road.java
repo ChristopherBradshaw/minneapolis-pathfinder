@@ -13,8 +13,8 @@ public class Road {
 
 	public Road(RoadType roadType, Point startPoint, Point endPoint) {
 		this.roadType = roadType;
-		this.startPoint = new RoadPoint(startPoint, this);
-		this.endPoint = new RoadPoint(endPoint, this);
+		this.startPoint = new RoadPoint(startPoint);
+		this.endPoint = new RoadPoint(endPoint);
 	}
 
 	public RoadType getRoadType() {

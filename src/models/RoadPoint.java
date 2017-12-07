@@ -4,19 +4,13 @@ import java.awt.Point;
 
 public class RoadPoint {
 	private final Point point;
-	private final Road road;
 	
-	public RoadPoint(Point p, Road road) {
+	public RoadPoint(Point p) {
 		this.point = p;
-		this.road = road;
 	}
 
 	public Point getPoint() {
 		return point;
-	}
-
-	public Road getRoad() {
-		return road;
 	}
 
 	@Override
@@ -24,7 +18,6 @@ public class RoadPoint {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((point == null) ? 0 : point.hashCode());
-		result = prime * result + ((road == null) ? 0 : road.hashCode());
 		return result;
 	}
 
@@ -37,13 +30,18 @@ public class RoadPoint {
 		if (getClass() != obj.getClass())
 			return false;
 		RoadPoint other = (RoadPoint) obj;
-		
-		return other.getPoint().equals(this.getPoint());
+		if (point == null) {
+			if (other.point != null)
+				return false;
+		} else if (!point.equals(other.point))
+			return false;
+		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "RoadPoint [point=" + point + ", road=" + road + "]";
+		return "RoadPoint [point=" + point + "]";
 	}
+	
 	
 }

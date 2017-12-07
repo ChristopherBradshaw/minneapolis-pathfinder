@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -43,6 +44,7 @@ public class MapApp extends Application {
 		List<Road> roads = RoadParser.parseRoads(new File("test.txt"));
 		scaleRoads(roads);
 		drawRoads(roads, gc);
+		Map<RoadPoint, List<RoadPoint>> roadMap = RoadParser.buildRoadPointGraph(roads);
 
 		root.getChildren().add(canvas);
 		Button bfs = new Button("BFS");
@@ -51,7 +53,7 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go BFS");
 				redraw(roads, gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.BFS);
 				drawOptimalPath(path, gc);
 			}
@@ -63,7 +65,7 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go A*");
 				redraw(roads,gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.ASTAR);
 				drawOptimalPath(path, gc);
 			}
@@ -75,16 +77,16 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go IDA*");
 				redraw(roads, gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.IDASTAR);
 				drawOptimalPath(path, gc);
 			}
 		});
 
 		GridPane pane = new GridPane();
-		pane.getChildren().add(bfs);
 		pane.getChildren().add(astar);
 		pane.getChildren().add(idastar);
+		pane.getChildren().add(bfs);
 		root.getChildren().add(pane);
 		canvas.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 
@@ -143,12 +145,12 @@ public class MapApp extends Application {
 			final Point endPoint = r.getEndPoint().getPoint();
 
 			if (p.distance(startPoint) < minDistance) {
-				closestPoint = new RoadPoint(startPoint, r);
+				closestPoint = new RoadPoint(startPoint);
 				minDistance = p.distance(startPoint);
 			}
 
 			if (p.distance(endPoint) < minDistance) {
-				closestPoint = new RoadPoint(endPoint, r);
+				closestPoint = new RoadPoint(endPoint);
 				minDistance = p.distance(endPoint);
 			}
 		}
