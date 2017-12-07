@@ -50,6 +50,10 @@ public class MapApp extends Application {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("Go BFS");
+				redraw(roads, gc);
+				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+						Pathfinder.AlgorithmType.BFS);
+				drawOptimalPath(path, gc);
 			}
 		});
 
@@ -58,6 +62,10 @@ public class MapApp extends Application {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("Go A*");
+				redraw(roads,gc);
+				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+						Pathfinder.AlgorithmType.ASTAR);
+				drawOptimalPath(path, gc);
 			}
 		});
 
@@ -66,6 +74,10 @@ public class MapApp extends Application {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("Go IDA*");
+				redraw(roads, gc);
+				List<Road> path = Pathfinder.getOptimalPath(roads, activeStart, activeEnd,
+						Pathfinder.AlgorithmType.IDASTAR);
+				drawOptimalPath(path, gc);
 			}
 		});
 
@@ -78,7 +90,7 @@ public class MapApp extends Application {
 
 			@Override
 			public void handle(MouseEvent event) {
-				RoadPoint p = getPointAtOrAround(roads, new Point((int) event.getX(), (int) event.getY()));
+				RoadPoint p = getRoadPointAtOrAround(roads, new Point((int) event.getX(), (int) event.getY()));
 
 				// If user clicks empty part on map
 				if (p == null) {
@@ -106,6 +118,12 @@ public class MapApp extends Application {
 		primaryStage.show();
 	}
 
+	private void redraw(List<Road> roads, GraphicsContext gc) {
+		// Reset pane, redraw to show selected point
+		gc.clearRect(0, 0, X_DIM, Y_DIM);
+		drawRoads(roads, gc);
+	}
+
 	/**
 	 * Returns road start or end point closest to point p
 	 * 
@@ -113,7 +131,7 @@ public class MapApp extends Application {
 	 * @param p
 	 * @return road start or end point, or null if no close point was pressed
 	 */
-	private RoadPoint getPointAtOrAround(List<Road> roads, Point p) {
+	private RoadPoint getRoadPointAtOrAround(List<Road> roads, Point p) {
 		final int MAX_ERROR_DISTANCE = 10;
 		double minDistance = Double.MAX_VALUE;
 		RoadPoint closestPoint = null;
@@ -199,6 +217,20 @@ public class MapApp extends Application {
 			start.y = (Y_DIM / 2) + (-1) * (sYDiff);
 			end.y = (Y_DIM / 2) + (-1) * (eYDiff);
 
+		}
+	}
+
+	private void drawOptimalPath(List<Road> path, GraphicsContext gc) {
+		if (path == null || gc == null)
+			return;
+
+		gc.setStroke(Color.BLUE);
+		gc.setLineWidth(3);
+
+		for (Road r : path) {
+			Point start = r.getStartPoint().getPoint();
+			Point end = r.getEndPoint().getPoint();
+			gc.strokeLine(start.getX(), start.getY(), end.getX(), end.getY());
 		}
 	}
 
