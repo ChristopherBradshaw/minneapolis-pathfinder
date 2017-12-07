@@ -1,28 +1,37 @@
 package app;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import models.Road;
+import models.RoadPoint;
 
 public class MapApp extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
 
-	private final int X_DIM = 800;
+	private final int X_DIM = 1300;
 	private final int Y_DIM = 800;
+	private final int X_PADDING = 100;
+	private final int Y_PADDING = 100;
+	private RoadPoint activeStart = null;
+	private RoadPoint activeEnd = null;
 
 	@Override
 	public void start(Stage primaryStage) throws FileNotFoundException, IOException {
@@ -36,17 +45,101 @@ public class MapApp extends Application {
 		drawRoads(roads, gc);
 
 		root.getChildren().add(canvas);
+		Button bfs = new Button("BFS");
+		bfs.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				System.out.println("Go BFS");
+			}
+		});
+
+		Button astar = new Button("A*");
+		astar.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				System.out.println("Go A*");
+			}
+		});
+
+		Button idastar = new Button("IDA*");
+		idastar.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				System.out.println("Go IDA*");
+			}
+		});
+
+		GridPane pane = new GridPane();
+		pane.getChildren().add(bfs);
+		pane.getChildren().add(astar);
+		pane.getChildren().add(idastar);
+		root.getChildren().add(pane);
 		canvas.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
-				System.out.println(event);
+				RoadPoint p = getPointAtOrAround(roads, new Point((int) event.getX(), (int) event.getY()));
+
+				// If user clicks empty part on map
+				if (p == null) {
+					return;
+				}
+
+				// Left click - pick start point
+				if (event.isPrimaryButtonDown()) {
+					activeStart = p;
+				}
+
+				// Right click - pick end point
+				if (event.isSecondaryButtonDown()) {
+					activeEnd = p;
+				}
+
+				// Reset pane, redraw to show selected point
+				gc.clearRect(0, 0, X_DIM, Y_DIM);
+				drawRoads(roads, gc);
 			}
-			
+
 		});
-		
+
 		primaryStage.setScene(new Scene(root));
 		primaryStage.show();
+	}
+
+	/**
+	 * Returns road start or end point closest to point p
+	 * 
+	 * @param roads
+	 * @param p
+	 * @return road start or end point, or null if no close point was pressed
+	 */
+	private RoadPoint getPointAtOrAround(List<Road> roads, Point p) {
+		final int MAX_ERROR_DISTANCE = 10;
+		double minDistance = Double.MAX_VALUE;
+		RoadPoint closestPoint = null;
+
+		// Loop through all the roads, try to find which road (and start/end point) was
+		// clicked
+		for (Road r : roads) {
+			final Point startPoint = r.getStartPoint().getPoint();
+			final Point endPoint = r.getEndPoint().getPoint();
+
+			if (p.distance(startPoint) < minDistance) {
+				closestPoint = new RoadPoint(startPoint, r);
+				minDistance = p.distance(startPoint);
+			}
+
+			if (p.distance(endPoint) < minDistance) {
+				closestPoint = new RoadPoint(endPoint, r);
+				minDistance = p.distance(endPoint);
+			}
+		}
+
+		if (minDistance > MAX_ERROR_DISTANCE) {
+			return null;
+		}
+
+		return closestPoint;
 	}
 
 	private void scaleRoads(List<Road> roads) {
@@ -57,69 +150,99 @@ public class MapApp extends Application {
 		double maxY = 0;
 
 		for (Road r : roads) {
+			Point start = r.getStartPoint().getPoint();
+			Point end = r.getEndPoint().getPoint();
+
 			// Update minX
-			minX = Math.min(minX, r.getStartPoint().getX());
-			minX = Math.min(minX, r.getEndPoint().getX());
+			minX = Math.min(minX, start.x);
+			minX = Math.min(minX, end.x);
 
 			// Update minY
-			minY = Math.min(minY, r.getStartPoint().getY());
-			minY = Math.min(minY, r.getEndPoint().getY());
+			minY = Math.min(minY, start.y);
+			minY = Math.min(minY, end.y);
 
 			// Update maxX
-			maxX = Math.max(maxX, r.getStartPoint().getX());
-			maxX = Math.max(maxX, r.getEndPoint().getX());
+			maxX = Math.max(maxX, start.x);
+			maxX = Math.max(maxX, end.x);
 
 			// Update maxY
-			maxY = Math.max(maxY, r.getStartPoint().getY());
-			maxY = Math.max(maxY, r.getEndPoint().getY());
+			maxY = Math.max(maxY, start.y);
+			maxY = Math.max(maxY, end.y);
 		}
 
+		minX -= X_PADDING;
+		maxX += X_PADDING;
+		minY -= Y_PADDING;
+		maxY += Y_PADDING;
 		final double xScale = (maxX - minX) / X_DIM;
 		final double yScale = (maxY - minY) / Y_DIM;
 
 		// Subtract off, scale, add padding to x/y values
 		for (Road r : roads) {
-			r.getStartPoint().x -= minX;
-			r.getStartPoint().y -= minY;
+			Point start = r.getStartPoint().getPoint();
+			Point end = r.getEndPoint().getPoint();
+			start.x -= minX;
+			start.y -= minY;
 
-			r.getEndPoint().x -= minX;
-			r.getEndPoint().y -= minY;
+			end.x -= minX;
+			end.y -= minY;
 
-			r.getStartPoint().x /= xScale;
-			r.getStartPoint().y /= yScale;
+			start.x /= xScale;
+			start.y /= yScale;
 
-			r.getEndPoint().x /= xScale;
-			r.getEndPoint().y /= yScale;
+			end.x /= xScale;
+			end.y /= yScale;
 
-			
-			int sYDiff = r.getStartPoint().y - (Y_DIM/2);
-			int eYDiff = r.getEndPoint().y - (Y_DIM/2);
-			
-			r.getStartPoint().y = (Y_DIM/2) + (-1)*(sYDiff);
-			r.getEndPoint().y = (Y_DIM/2) + (-1)*(eYDiff);
+			int sYDiff = start.y - (Y_DIM / 2);
+			int eYDiff = end.y - (Y_DIM / 2);
+
+			start.y = (Y_DIM / 2) + (-1) * (sYDiff);
+			end.y = (Y_DIM / 2) + (-1) * (eYDiff);
 
 		}
 	}
 
 	private void drawRoads(List<Road> roads, GraphicsContext gc) {
+		final Color lineColor = Color.BLACK;
+		final Color defaultColor = Color.LIGHTGRAY;
+		final Color startColor = Color.GREEN;
+		final Color endColor = Color.RED;
 
-		gc.setFill(Color.GREEN);
-		gc.setStroke(Color.BLUE);
+		gc.setStroke(lineColor);
 		gc.setLineWidth(1);
 
 		// Paint roads now
 		for (Road r : roads) {
-			gc.strokeLine(r.getStartPoint().getX(), r.getStartPoint().getY(), r.getEndPoint().getX(),
-					r.getEndPoint().getY());
-			
-			final int REC_OFFSET = 4;
-			final int REC_DIM = 7;
-			gc.setFill(Color.GREEN);
-			gc.fillRect(r.getStartPoint().x-REC_OFFSET, r.getStartPoint().y-REC_OFFSET, REC_DIM, REC_DIM);
-			
-			gc.setFill(Color.RED);
-			gc.fillRect(r.getEndPoint().x-REC_OFFSET, r.getEndPoint().y-REC_OFFSET, REC_DIM, REC_DIM);
+			Point start = r.getStartPoint().getPoint();
+			Point end = r.getEndPoint().getPoint();
+			gc.strokeLine(start.getX(), start.getY(), end.getX(), end.getY());
 
+			final int REC_OFFSET = 5;
+			final int REC_DIM = 8;
+
+			// Color start point
+			gc.setFill(defaultColor);
+			if (activeStart != null && activeStart.equals(r.getStartPoint())) {
+				gc.setFill(startColor);
+			}
+
+			if (activeEnd != null && activeEnd.equals(r.getStartPoint())) {
+				gc.setFill(endColor);
+			}
+
+			gc.fillRect(start.x - REC_OFFSET, start.y - REC_OFFSET, REC_DIM, REC_DIM);
+
+			// Color end point
+			gc.setFill(defaultColor);
+			if (activeStart != null && activeStart.equals(r.getEndPoint())) {
+				gc.setFill(startColor);
+			}
+
+			if (activeEnd != null && activeEnd.equals(r.getEndPoint())) {
+				gc.setFill(endColor);
+			}
+
+			gc.fillRect(end.x - REC_OFFSET, end.y - REC_OFFSET, REC_DIM, REC_DIM);
 		}
 	}
 }

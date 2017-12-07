@@ -8,24 +8,24 @@ public class Road {
 	}
 
 	private final RoadType roadType;
-	private final Point startPoint;
-	private final Point endPoint;
+	private final RoadPoint startPoint;
+	private final RoadPoint endPoint;
 
 	public Road(RoadType roadType, Point startPoint, Point endPoint) {
 		this.roadType = roadType;
-		this.startPoint = startPoint;
-		this.endPoint = endPoint;
+		this.startPoint = new RoadPoint(startPoint, this);
+		this.endPoint = new RoadPoint(endPoint, this);
 	}
 
 	public RoadType getRoadType() {
 		return roadType;
 	}
 
-	public Point getStartPoint() {
+	public RoadPoint getStartPoint() {
 		return startPoint;
 	}
 
-	public Point getEndPoint() {
+	public RoadPoint getEndPoint() {
 		return endPoint;
 	}
 
@@ -62,7 +62,7 @@ public class Road {
 	}
 
 	public String toString() {
-		return "Road [roadType=" + roadType + ", startPoint=" + startPoint + ", endPoint=" + endPoint + "]";
+		return "Road [roadType=" + roadType + ", startPoint=" + startPoint.getPoint() + ", endPoint=" + endPoint.getPoint() + "]";
 	}
 
 }
