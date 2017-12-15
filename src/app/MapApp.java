@@ -55,7 +55,7 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go BFS");
 				redraw(roads, gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, null, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.BFS);
 				drawOptimalPath(path, gc);
 			}
@@ -67,7 +67,8 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go A*");
 				redraw(roads,gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
+				Map<RoadPoint, Double> heuristics = Pathfinder.calculateHeuristics(roads, activeEnd);
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, heuristics, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.ASTAR);
 				drawOptimalPath(path, gc);
 			}
@@ -79,7 +80,7 @@ public class MapApp extends Application {
 			public void handle(ActionEvent event) {
 				System.out.println("Go IDA*");
 				redraw(roads, gc);
-				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, activeStart, activeEnd,
+				List<Road> path = Pathfinder.getOptimalPath(roads, roadMap, null, activeStart, activeEnd,
 						Pathfinder.AlgorithmType.IDASTAR);
 				drawOptimalPath(path, gc);
 			}
