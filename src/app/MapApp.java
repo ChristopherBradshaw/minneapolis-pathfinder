@@ -10,13 +10,15 @@ import java.util.Map;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import models.Road;
@@ -83,11 +85,15 @@ public class MapApp extends Application {
 			}
 		});
 
-		GridPane pane = new GridPane();
-		pane.getChildren().add(astar);
-		pane.getChildren().add(idastar);
-		pane.getChildren().add(bfs);
-		root.getChildren().add(pane);
+		bfs.setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+		astar.setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+		idastar.setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+
+		TilePane tileButtons = new TilePane(Orientation.HORIZONTAL);
+		tileButtons.setPadding(new Insets(10, 5, 10, 0));
+		tileButtons.setHgap(10.0);
+		tileButtons.getChildren().addAll(bfs, astar, idastar);
+		root.getChildren().add(tileButtons);
 		canvas.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 
 			@Override
